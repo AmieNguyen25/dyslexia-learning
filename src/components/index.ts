@@ -7,3 +7,4 @@ export { PerformanceMetrics } from './PerformanceMetrics';
 export { VisualLesson } from './VisualLesson';
 export { AuditoryLesson } from './AuditoryLesson';
 export { QuickQuiz } from './QuickQuiz';
+export { OnboardingWizard } from './OnboardingWizard';

@@ -39,7 +39,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
             <button
                 onClick={() => onSpeakText(`Welcome back ${currentUser?.name}! Ready to continue your algebra journey?`)}
-                className="mt-4 bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors focus:ring-4 focus:ring-white focus:ring-opacity-30"
+                className="mt-4 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors focus:ring-4 focus:ring-blue-300"
             >
                 <Volume2 size={18} />
                 <span style={{ fontSize: `${fontSize - 2}px` }}>Listen</span>
