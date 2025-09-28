@@ -45,5 +45,37 @@ export interface OnboardingData {
     };
 }
 
+export interface Lesson {
+    id: string;
+    title: string;
+    description: string;
+    duration: number; // in minutes
+    difficulty: 'beginner' | 'intermediate' | 'advanced';
+    completed: boolean;
+    locked: boolean;
+    topics: string[];
+}
+
+export interface Course {
+    id: string;
+    title: string;
+    description: string;
+    icon: string;
+    color: string;
+    level: 'elementary' | 'middle' | 'high' | 'college';
+    lessons: Lesson[];
+    progress: number; // percentage completed
+    estimatedHours: number;
+    prerequisites?: string[];
+}
+
+export interface CourseProgress {
+    courseId: string;
+    completedLessons: string[];
+    currentLesson: string | null;
+    timeSpent: number; // in minutes
+    lastAccessed: Date;
+}
+
 export type LearningPath = 'visual' | 'auditory';
 export type CurrentPage = 'dashboard' | 'lesson' | 'onboarding';
