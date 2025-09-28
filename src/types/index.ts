@@ -45,6 +45,35 @@ export interface OnboardingData {
     };
 }
 
+export interface LessonExample {
+    id: string;
+    title: string;
+    problem: string;
+    solution: string;
+    explanation: string;
+    visualAid?: string; // URL or description for visual representation
+}
+
+export interface QuizQuestion {
+    id: string;
+    question: string;
+    options: string[];
+    correctAnswer: number; // index of correct option
+    explanation: string;
+    difficulty: 'easy' | 'medium' | 'hard';
+}
+
+export interface QuizAttempt {
+    attemptId: string;
+    lessonId: string;
+    questions: QuizQuestion[];
+    userAnswers: (number | null)[];
+    score: number;
+    passed: boolean;
+    completedAt: Date;
+    timeSpent: number; // in seconds
+}
+
 export interface Lesson {
     id: string;
     title: string;
@@ -54,6 +83,9 @@ export interface Lesson {
     completed: boolean;
     locked: boolean;
     topics: string[];
+    examples: LessonExample[];
+    quizAttempts: QuizAttempt[];
+    passRequiredScore: number; // minimum score to pass (e.g., 3 out of 5)
 }
 
 export interface Course {
@@ -78,4 +110,4 @@ export interface CourseProgress {
 }
 
 export type LearningPath = 'visual' | 'auditory';
-export type CurrentPage = 'dashboard' | 'lesson' | 'onboarding';
+export type CurrentPage = 'dashboard' | 'lesson' | 'study-plan' | 'onboarding';

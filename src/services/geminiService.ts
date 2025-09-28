@@ -1,4 +1,4 @@
-import OpenAI from 'openai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 interface Message {
     id: string;
@@ -7,21 +7,20 @@ interface Message {
     timestamp: Date;
 }
 
-// Initialize OpenAI client
-let openai: OpenAI | null = null;
+// Initialize Gemini AI client
+let genAI: GoogleGenerativeAI | null = null;
+let model: any = null;
 
-// Initialize OpenAI only if API key is available
-const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-if (apiKey && apiKey !== 'your_openai_api_key_here') {
-    openai = new OpenAI({
-        apiKey: apiKey,
-        dangerouslyAllowBrowser: true // Only for development - consider using a backend for production
-    });
+// Initialize Gemini only if API key is available
+const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+if (apiKey && apiKey !== 'your_gemini_api_key_here') {
+    genAI = new GoogleGenerativeAI(apiKey);
+    model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
 }
 
 export const getChatResponse = async (message: string, previousMessages: Message[] = []): Promise<string> => {
     // If no API key is configured, use fallback responses
-    if (!openai) {
+    if (!model) {
         return getFallbackResponse(message);
     }
 
@@ -44,36 +43,32 @@ Remember that you're helping students who may have dyslexia, so use:
 - Encouraging tone
 - Concrete examples over abstract concepts`;
 
-        const conversationHistory = previousMessages.slice(-10).map(msg => ({
-            role: msg.sender === 'user' ? 'user' as const : 'assistant' as const,
-            content: msg.text
-        }));
+        // Build conversation history
+        let conversationContext = systemPrompt + "\n\n";
 
-        const response = await openai.chat.completions.create({
-            model: 'gpt-4o-mini',
-            messages: [
-                { role: 'system', content: systemPrompt },
-                ...conversationHistory,
-                { role: 'user', content: message }
-            ],
-            max_tokens: 300,
-            temperature: 0.7,
-            presence_penalty: 0.1,
-            frequency_penalty: 0.1
-        });
+        // Include recent conversation history (last 10 messages)
+        const recentMessages = previousMessages.slice(-10);
+        for (const msg of recentMessages) {
+            conversationContext += `${msg.sender === 'user' ? 'Student' : 'Assistant'}: ${msg.text}\n`;
+        }
 
-        return response.choices[0]?.message?.content ||
-            "I'm sorry, I couldn't generate a response. Could you try rephrasing your question?";
+        conversationContext += `Student: ${message}\nAssistant:`;
+
+        const result = await model.generateContent(conversationContext);
+        const response = await result.response;
+        const text = response.text();
+
+        return text || "I'm sorry, I couldn't generate a response. Could you try rephrasing your question?";
 
     } catch (error) {
-        console.error('OpenAI API Error:', error);
+        console.error('Gemini AI Error:', error);
 
         if (error instanceof Error) {
-            if (error.message.includes('API key')) {
-                return "I need an API key to work properly. Please make sure the OpenAI API key is configured correctly.";
-            } else if (error.message.includes('quota')) {
+            if (error.message.includes('API_KEY')) {
+                return "I need an API key to work properly. Please make sure the Gemini API key is configured correctly.";
+            } else if (error.message.includes('quota') || error.message.includes('QUOTA_EXCEEDED')) {
                 return "I've reached my usage limit for now. Please try again later or contact support.";
-            } else if (error.message.includes('rate limit')) {
+            } else if (error.message.includes('rate') || error.message.includes('RATE_LIMIT')) {
                 return "I'm getting too many requests right now. Please wait a moment and try again.";
             }
         }

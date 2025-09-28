@@ -1,5 +1,5 @@
 import React from 'react';
-import { User, LogOut, Home, BookOpen } from 'lucide-react';
+import { User, LogOut, Home, BookOpen, Calendar } from 'lucide-react';
 import type { User as UserType, CurrentPage, Course } from '../types';
 
 interface NavigationProps {
@@ -53,6 +53,15 @@ export const Navigation: React.FC<NavigationProps> = ({
                     >
                         <BookOpen size={18} />
                         <span style={{ fontSize: `${fontSize - 2}px` }}>Lesson</span>
+                    </button>
+
+                    <button
+                        onClick={() => onPageChange('study-plan')}
+                        className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors focus:ring-4 focus:ring-purple-200 ${currentPage === 'study-plan' ? 'bg-purple-100 text-purple-700' : 'text-gray-600 hover:bg-gray-100'
+                            }`}
+                    >
+                        <Calendar size={18} />
+                        <span style={{ fontSize: `${fontSize - 2}px` }}>Study Plan</span>
                     </button>
                 </div>
             </div>

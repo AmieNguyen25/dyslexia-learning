@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Navigation, OnboardingWizard, Chatbot } from './components';
-import { Dashboard, LessonPage, Login, Register } from './pages';
-import { useSpeechSynthesis, useTimer, useAccessibilitySettings } from './hooks';
+import { Dashboard, LessonPage, StudyPlan, Login, Register } from './pages';
+import { useSpeechSynthesis, useTimer, useAccessibilitySettings, useProgressTracking } from './hooks';
 import { MessageSquare } from 'lucide-react';
-import type { User, LearningPath, CurrentPage, OnboardingData, Course } from './types';
+import type { User, LearningPath, CurrentPage, OnboardingData, Course, QuizAttempt } from './types';
 
 
 const DyslexiaAlgebraApp = () => {
@@ -20,6 +20,7 @@ const DyslexiaAlgebraApp = () => {
   const { fontSize, lineSpacing, characterSpacing, setFontSize, setLineSpacing, setCharacterSpacing } = useAccessibilitySettings();
   const { speakText } = useSpeechSynthesis();
   const { timeOnTask, resetTimer } = useTimer(currentPage === 'lesson' && isLoggedIn);
+  const { completeLesson, getCoursesWithProgress, enhanceCourseWithProgress } = useProgressTracking();
 
   const handleLogin = (username: string, _password: string) => {
     setIsLoggedIn(true);
@@ -55,10 +56,10 @@ const DyslexiaAlgebraApp = () => {
         ]
       });
     }
-    
+
     // Apply accessibility settings
     setFontSize(onboardingData.accessibilityPrefs.fontSize);
-    
+
     // Complete the flow
     setShowOnboarding(false);
     setIsLoggedIn(true);
@@ -86,6 +87,45 @@ const DyslexiaAlgebraApp = () => {
   const handleBackToDashboard = () => {
     setCurrentPage('dashboard');
     // Keep selectedCourse so user can return to their course
+  };
+
+  const handleLessonComplete = (lessonId: string, attempt: QuizAttempt) => {
+    // Update progress tracking
+    if (selectedCourse && attempt) {
+      completeLesson(selectedCourse.id, lessonId, attempt);
+
+      // Update the selected course with new progress
+      const updatedCourse = enhanceCourseWithProgress(selectedCourse);
+      setSelectedCourse(updatedCourse);
+    }
+
+    // Update user performance based on quiz results
+    if (currentUser && attempt) {
+      const newAvgScore = (currentUser.performance.avgQuizScore + attempt.score * 20) / 2; // Convert to percentage
+      const newConfidence = attempt.passed
+        ? Math.min(currentUser.performance.confidenceLevel + 0.2, 5.0)
+        : Math.max(currentUser.performance.confidenceLevel - 0.1, 1.0);
+
+      setCurrentUser({
+        ...currentUser,
+        performance: {
+          ...currentUser.performance,
+          avgQuizScore: newAvgScore,
+          confidenceLevel: newConfidence
+        },
+        adaptationHistory: [
+          ...currentUser.adaptationHistory,
+          `Completed lesson ${lessonId} with score ${attempt.score}/5 (${attempt.passed ? 'passed' : 'failed'})`
+        ]
+      });
+    }
+
+    // Show congratulations or encouragement
+    const message = attempt.passed
+      ? `Great job! You completed the lesson with ${attempt.score} out of 5 correct answers!`
+      : `Good effort! You got ${attempt.score} out of 5. Review the examples and try again when you're ready.`;
+
+    speakText(message);
   };
 
   // Show onboarding wizard after registration
@@ -156,6 +196,13 @@ const DyslexiaAlgebraApp = () => {
           selectedCourse={selectedCourse}
           onCourseSelect={handleCourseSelect}
         />
+      ) : currentPage === 'study-plan' ? (
+        <StudyPlan
+          fontSize={fontSize}
+          lineSpacing={lineSpacing}
+          characterSpacing={characterSpacing}
+          onSpeakText={speakText}
+        />
       ) : (
         <LessonPage
           fontSize={fontSize}
@@ -166,6 +213,8 @@ const DyslexiaAlgebraApp = () => {
           onSpeakText={speakText}
           selectedCourse={selectedCourse}
           onBackToDashboard={handleBackToDashboard}
+          currentUser={currentUser}
+          onLessonComplete={handleLessonComplete}
         />
       )}
 

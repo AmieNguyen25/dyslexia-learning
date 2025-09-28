@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Play, Clock, Star, CheckCircle, Lock, ArrowLeft, BookOpen } from 'lucide-react';
 import { VisualLesson } from '../components/VisualLesson';
 import { AuditoryLesson } from '../components/AuditoryLesson';
 import { QuickQuiz } from '../components/QuickQuiz';
-import type { LearningPath, VisualStep, Course, Lesson } from '../types';
+import { LessonExamples } from '../components/LessonExamples';
+import { QuizComponent } from '../components/QuizComponent';
+import type { LearningPath, VisualStep, Course, Lesson, LessonExample, QuizAttempt, User } from '../types';
 
 interface LessonPageProps {
     fontSize: number;
@@ -14,6 +16,8 @@ interface LessonPageProps {
     onSpeakText: (text: string) => void;
     selectedCourse?: Course | null;
     onBackToDashboard?: () => void;
+    currentUser?: User | null;
+    onLessonComplete?: (lessonId: string, attempt: QuizAttempt) => void;
 }
 
 const visualSteps: VisualStep[] = [
@@ -22,6 +26,39 @@ const visualSteps: VisualStep[] = [
     { step: '2x = 6', explanation: 'Simplify both sides' },
     { step: 'x = 3', explanation: 'Divide both sides by 2' }
 ];
+
+// Helper function to create sample examples for lessons
+const createSampleExamples = (lesson: Lesson): LessonExample[] => {
+    // Create examples based on lesson topics
+    const baseExamples = [
+        {
+            id: 'example-1',
+            title: 'Basic Example',
+            problem: 'Solve for x: 2x + 3 = 9',
+            solution: 'x = 3',
+            explanation: 'Step 1: Subtract 3 from both sides\n2x + 3 - 3 = 9 - 3\n2x = 6\n\nStep 2: Divide both sides by 2\n2x ÷ 2 = 6 ÷ 2\nx = 3',
+            visualAid: 'Think of this like a balance scale - whatever you do to one side, do to the other!'
+        },
+        {
+            id: 'example-2',
+            title: 'Practice Example',
+            problem: 'Solve for x: 3x - 7 = 14',
+            solution: 'x = 7',
+            explanation: 'Step 1: Add 7 to both sides\n3x - 7 + 7 = 14 + 7\n3x = 21\n\nStep 2: Divide both sides by 3\n3x ÷ 3 = 21 ÷ 3\nx = 7',
+            visualAid: 'Picture moving the -7 to the other side by changing it to +7'
+        },
+        {
+            id: 'example-3',
+            title: 'Challenge Example',
+            problem: 'Solve for x: 4x + 2 = 2x + 10',
+            solution: 'x = 4',
+            explanation: 'Step 1: Subtract 2x from both sides\n4x - 2x + 2 = 2x - 2x + 10\n2x + 2 = 10\n\nStep 2: Subtract 2 from both sides\n2x + 2 - 2 = 10 - 2\n2x = 8\n\nStep 3: Divide both sides by 2\nx = 4',
+            visualAid: 'Move all x terms to one side and all numbers to the other side'
+        }
+    ];
+
+    return baseExamples;
+};
 
 export const LessonPage: React.FC<LessonPageProps> = ({
     fontSize,
@@ -32,14 +69,34 @@ export const LessonPage: React.FC<LessonPageProps> = ({
     onSpeakText,
     selectedCourse,
     onBackToDashboard,
+    currentUser,
+    onLessonComplete
 }) => {
     const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
+    const [lessonPhase, setLessonPhase] = useState<'examples' | 'quiz' | 'completed'>('examples');
     const [equationStep, setEquationStep] = useState(0);
     const [rewindCount, setRewindCount] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);
     const [quizScore, setQuizScore] = useState<number | null>(null);
     const [confidenceScore, setConfidenceScore] = useState<number | null>(null);
     const [currentEquation] = useState('2x + 5 = 11');
+
+    // Create enhanced lesson data with examples
+    useEffect(() => {
+        if (selectedCourse && selectedCourse.lessons.length > 0) {
+            const lesson = selectedCourse.lessons[0];
+
+            // Add sample examples if they don't exist
+            const enhancedLesson: Lesson = {
+                ...lesson,
+                examples: lesson.examples || createSampleExamples(lesson),
+                quizAttempts: lesson.quizAttempts || [],
+                passRequiredScore: lesson.passRequiredScore || 3
+            };
+
+            setSelectedLesson(enhancedLesson);
+        }
+    }, [selectedCourse]);
 
     const handleNextStep = () => {
         setEquationStep(Math.min(equationStep + 1, visualSteps.length - 1));
@@ -48,6 +105,33 @@ export const LessonPage: React.FC<LessonPageProps> = ({
     const handlePreviousStep = () => {
         setEquationStep(Math.max(equationStep - 1, 0));
         setRewindCount(prev => prev + 1);
+    };
+
+    const handleExamplesComplete = () => {
+        setLessonPhase('quiz');
+    };
+
+    const handleQuizComplete = (attempt: QuizAttempt) => {
+        if (selectedLesson && currentUser) {
+            // Update lesson with quiz attempt
+            const updatedLesson = {
+                ...selectedLesson,
+                quizAttempts: [...selectedLesson.quizAttempts, attempt],
+                completed: attempt.passed
+            };
+            setSelectedLesson(updatedLesson);
+
+            if (attempt.passed) {
+                setLessonPhase('completed');
+                // Notify parent component
+                if (onLessonComplete) {
+                    onLessonComplete(selectedLesson.id, attempt);
+                }
+            } else {
+                // If failed, go back to examples for review
+                setLessonPhase('examples');
+            }
+        }
     };
 
     const handlePlayPause = () => {
@@ -100,6 +184,106 @@ export const LessonPage: React.FC<LessonPageProps> = ({
     }
 
     // If a lesson is selected, show the lesson content
+    if (selectedLesson && currentUser) {
+        // Show different phases of the lesson
+        if (lessonPhase === 'examples') {
+            return (
+                <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+                    <div className="max-w-4xl mx-auto p-6">
+                        <div className="flex items-center space-x-4 mb-6">
+                            <button
+                                onClick={() => setSelectedLesson(null)}
+                                className="flex items-center space-x-2 px-4 py-2 bg-white rounded-lg shadow hover:shadow-md transition-shadow"
+                                style={{ fontSize: `${fontSize}px` }}
+                            >
+                                <ArrowLeft size={20} />
+                                <span>Back to Lessons</span>
+                            </button>
+                            <h1 style={{ fontSize: `${fontSize + 6}px` }} className="font-bold text-gray-800">
+                                📚 {selectedLesson.title}
+                            </h1>
+                        </div>
+
+                        <LessonExamples
+                            examples={selectedLesson.examples}
+                            fontSize={fontSize}
+                            lineSpacing={lineSpacing}
+                            onSpeakText={onSpeakText}
+                            onExamplesComplete={handleExamplesComplete}
+                        />
+                    </div>
+                </div>
+            );
+        }
+
+        if (lessonPhase === 'quiz') {
+            return (
+                <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+                    <div className="max-w-4xl mx-auto p-6">
+                        <div className="flex items-center space-x-4 mb-6">
+                            <button
+                                onClick={() => setLessonPhase('examples')}
+                                className="flex items-center space-x-2 px-4 py-2 bg-white rounded-lg shadow hover:shadow-md transition-shadow"
+                                style={{ fontSize: `${fontSize}px` }}
+                            >
+                                <ArrowLeft size={20} />
+                                <span>Review Examples</span>
+                            </button>
+                            <h1 style={{ fontSize: `${fontSize + 6}px` }} className="font-bold text-gray-800">
+                                🧠 Quiz: {selectedLesson.title}
+                            </h1>
+                        </div>
+
+                        <QuizComponent
+                            lesson={selectedLesson}
+                            user={currentUser}
+                            fontSize={fontSize}
+                            lineSpacing={lineSpacing}
+                            onQuizComplete={handleQuizComplete}
+                            onSpeakText={onSpeakText}
+                        />
+                    </div>
+                </div>
+            );
+        }
+
+        if (lessonPhase === 'completed') {
+            return (
+                <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
+                    <div className="max-w-4xl mx-auto p-6">
+                        <div className="bg-white rounded-xl shadow-lg p-8 text-center">
+                            <CheckCircle className="mx-auto mb-6 text-green-500" size={64} />
+                            <h1 style={{ fontSize: `${fontSize + 8}px` }} className="font-bold text-green-800 mb-4">
+                                🎉 Lesson Completed!
+                            </h1>
+                            <p style={{ fontSize: `${fontSize + 2}px`, lineHeight: lineSpacing }} className="text-gray-700 mb-8">
+                                Great job! You've successfully completed "{selectedLesson.title}".
+                            </p>
+
+                            <div className="flex justify-center space-x-4">
+                                <button
+                                    onClick={() => setSelectedLesson(null)}
+                                    className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors"
+                                    style={{ fontSize: `${fontSize}px` }}
+                                >
+                                    Choose Next Lesson
+                                </button>
+                                <button
+                                    onClick={onBackToDashboard}
+                                    className="px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold transition-colors"
+                                    style={{ fontSize: `${fontSize}px` }}
+                                >
+                                    Back to Dashboard
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+    }
+
+    // Legacy lesson view (keeping for backward compatibility)
     if (selectedLesson) {
         return (
             <div className="max-w-4xl mx-auto p-6">
@@ -230,24 +414,22 @@ export const LessonPage: React.FC<LessonPageProps> = ({
                     {selectedCourse.lessons.map((lesson, index) => (
                         <div
                             key={lesson.id}
-                            className={`bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-200 hover:shadow-xl ${
-                                lesson.locked ? 'opacity-75' : 'hover:-translate-y-1 cursor-pointer'
-                            }`}
+                            className={`bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-200 hover:shadow-xl ${lesson.locked ? 'opacity-75' : 'hover:-translate-y-1 cursor-pointer'
+                                }`}
                             onClick={() => !lesson.locked && setSelectedLesson(lesson)}
                         >
                             {/* Lesson Header */}
-                            <div className={`h-2 bg-gradient-to-r ${
-                                lesson.completed 
-                                    ? 'from-green-400 to-green-600' 
-                                    : lesson.locked 
-                                    ? 'from-gray-300 to-gray-400'
-                                    : 'from-blue-400 to-blue-600'
-                            }`} />
-                            
+                            <div className={`h-2 bg-gradient-to-r ${lesson.completed
+                                    ? 'from-green-400 to-green-600'
+                                    : lesson.locked
+                                        ? 'from-gray-300 to-gray-400'
+                                        : 'from-blue-400 to-blue-600'
+                                }`} />
+
                             <div className="p-6">
                                 {/* Lesson Number & Status */}
                                 <div className="flex items-center justify-between mb-3">
-                                    <span 
+                                    <span
                                         style={{ fontSize: `${fontSize - 4}px` }}
                                         className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full font-medium"
                                     >
@@ -314,20 +496,19 @@ export const LessonPage: React.FC<LessonPageProps> = ({
                                         }
                                     }}
                                     disabled={lesson.locked}
-                                    className={`w-full py-3 px-4 rounded-lg font-medium transition-colors ${
-                                        lesson.locked
+                                    className={`w-full py-3 px-4 rounded-lg font-medium transition-colors ${lesson.locked
                                             ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
                                             : lesson.completed
-                                            ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                                            : 'bg-blue-600 text-white hover:bg-blue-700'
-                                    }`}
+                                                ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                                                : 'bg-blue-600 text-white hover:bg-blue-700'
+                                        }`}
                                     style={{ fontSize: `${fontSize - 2}px` }}
                                 >
-                                    {lesson.locked 
+                                    {lesson.locked
                                         ? <strong>Locked</strong>
-                                        : lesson.completed 
-                                        ? <strong>Review Lesson</strong>
-                                        : <strong>Start Lesson</strong>
+                                        : lesson.completed
+                                            ? <strong>Review Lesson</strong>
+                                            : <strong>Start Lesson</strong>
                                     }
                                 </button>
                             </div>

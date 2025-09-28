@@ -1,5 +1,6 @@
 import React from 'react';
 import { Play, Clock, Star, CheckCircle, Lock, Volume2, Palette } from 'lucide-react';
+import { useProgressTracking } from '../hooks';
 import type { Course, Lesson } from '../types';
 
 interface ElementaryCoursesProps {
@@ -17,7 +18,16 @@ export const ElementaryCourses: React.FC<ElementaryCoursesProps> = ({
     onSpeakText,
     userProgress = {}
 }) => {
-    const elementaryCourses: Course[] = [
+    const { getCoursesWithProgress } = useProgressTracking();
+
+    // Helper function to add default properties to lessons
+    const enhanceLesson = (lesson: any): Lesson => ({
+        ...lesson,
+        examples: lesson.examples || [],
+        quizAttempts: lesson.quizAttempts || [],
+        passRequiredScore: lesson.passRequiredScore || 3
+    });
+    const baseCourses = [
         {
             id: 'elem-foundations-1',
             title: 'Math Foundations 1',
@@ -239,6 +249,13 @@ export const ElementaryCourses: React.FC<ElementaryCoursesProps> = ({
         }
     ];
 
+    // Create enhanced courses with properly typed lessons
+    const elementaryCourses: Course[] = baseCourses.map(course => ({
+        ...course,
+        level: 'elementary' as const,
+        lessons: course.lessons.map(enhanceLesson)
+    }));
+
     const getDifficultyColor = (difficulty: Lesson['difficulty']) => {
         switch (difficulty) {
             case 'beginner': return 'text-green-600 bg-green-100';
@@ -262,13 +279,13 @@ export const ElementaryCourses: React.FC<ElementaryCoursesProps> = ({
                 <div className="flex items-center justify-center space-x-4 mb-4">
                     <div className="text-6xl">🎨</div>
                     <div>
-                        <h1 
+                        <h1
                             style={{ fontSize: `${fontSize + 8}px`, lineHeight: lineSpacing }}
                             className="font-bold text-gray-800"
                         >
                             Elementary Math Courses
                         </h1>
-                        <p 
+                        <p
                             style={{ fontSize: `${fontSize}px`, lineHeight: lineSpacing }}
                             className="text-gray-600"
                         >
@@ -288,7 +305,7 @@ export const ElementaryCourses: React.FC<ElementaryCoursesProps> = ({
 
             {/* Courses Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {elementaryCourses.map((course) => (
+                {getCoursesWithProgress(elementaryCourses).map((course) => (
                     <div
                         key={course.id}
                         className="bg-white rounded-3xl shadow-xl border border-gray-200 overflow-hidden hover:shadow-2xl transition-all duration-300"
@@ -299,13 +316,13 @@ export const ElementaryCourses: React.FC<ElementaryCoursesProps> = ({
                                 <div className="flex items-center space-x-4">
                                     <div className="text-4xl">{course.icon}</div>
                                     <div>
-                                        <h3 
+                                        <h3
                                             style={{ fontSize: `${fontSize + 4}px` }}
                                             className="font-bold mb-2"
                                         >
                                             {course.title}
                                         </h3>
-                                        <p 
+                                        <p
                                             style={{ fontSize: `${fontSize - 2}px`, lineHeight: lineSpacing }}
                                             className="opacity-90"
                                         >
@@ -332,7 +349,7 @@ export const ElementaryCourses: React.FC<ElementaryCoursesProps> = ({
                                     </span>
                                 </div>
                                 <div className="w-full bg-white bg-opacity-20 rounded-full h-2">
-                                    <div 
+                                    <div
                                         className="bg-white h-2 rounded-full transition-all duration-500"
                                         style={{ width: `${course.progress}%` }}
                                     />
@@ -352,7 +369,7 @@ export const ElementaryCourses: React.FC<ElementaryCoursesProps> = ({
 
                         {/* Lessons List */}
                         <div className="p-6">
-                            <h4 
+                            <h4
                                 style={{ fontSize: `${fontSize + 2}px` }}
                                 className="font-bold text-gray-800 mb-4 flex items-center"
                             >
@@ -364,11 +381,10 @@ export const ElementaryCourses: React.FC<ElementaryCoursesProps> = ({
                                 {course.lessons.slice(0, 3).map((lesson, index) => (
                                     <div
                                         key={lesson.id}
-                                        className={`p-4 rounded-xl border-2 transition-all ${
-                                            lesson.locked 
-                                                ? 'bg-gray-50 border-gray-200 opacity-60' 
+                                        className={`p-4 rounded-xl border-2 transition-all ${lesson.locked
+                                                ? 'bg-gray-50 border-gray-200 opacity-60'
                                                 : 'bg-gray-50 border-gray-200 hover:border-indigo-300 hover:bg-indigo-50'
-                                        }`}
+                                            }`}
                                     >
                                         <div className="flex items-center justify-between">
                                             <div className="flex-1">
@@ -383,7 +399,7 @@ export const ElementaryCourses: React.FC<ElementaryCoursesProps> = ({
                                                     ) : (
                                                         <Play className="text-indigo-500" size={16} />
                                                     )}
-                                                    <h5 
+                                                    <h5
                                                         style={{ fontSize: `${fontSize}px` }}
                                                         className="font-medium text-gray-800"
                                                     >
@@ -391,7 +407,7 @@ export const ElementaryCourses: React.FC<ElementaryCoursesProps> = ({
                                                     </h5>
                                                 </div>
 
-                                                <p 
+                                                <p
                                                     style={{ fontSize: `${fontSize - 4}px`, lineHeight: lineSpacing }}
                                                     className="text-gray-600 mb-2 ml-8"
                                                 >
@@ -401,14 +417,14 @@ export const ElementaryCourses: React.FC<ElementaryCoursesProps> = ({
                                                 <div className="flex items-center space-x-4 ml-8">
                                                     <div className="flex items-center space-x-1">
                                                         <Clock size={14} className="text-gray-400" />
-                                                        <span 
+                                                        <span
                                                             style={{ fontSize: `${fontSize - 6}px` }}
                                                             className="text-gray-500"
                                                         >
                                                             {formatDuration(lesson.duration)}
                                                         </span>
                                                     </div>
-                                                    <span 
+                                                    <span
                                                         className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(lesson.difficulty)}`}
                                                         style={{ fontSize: `${fontSize - 8}px` }}
                                                     >
@@ -422,7 +438,7 @@ export const ElementaryCourses: React.FC<ElementaryCoursesProps> = ({
 
                                 {course.lessons.length > 3 && (
                                     <div className="text-center">
-                                        <span 
+                                        <span
                                             style={{ fontSize: `${fontSize - 4}px` }}
                                             className="text-gray-500"
                                         >
@@ -436,20 +452,19 @@ export const ElementaryCourses: React.FC<ElementaryCoursesProps> = ({
                             <button
                                 onClick={() => onCourseSelect(course)}
                                 disabled={course.prerequisites && course.progress === 0}
-                                className={`w-full mt-6 py-4 px-6 rounded-xl font-bold transition-all duration-200 focus:ring-4 ${
-                                    course.prerequisites && course.progress === 0
+                                className={`w-full mt-6 py-4 px-6 rounded-xl font-bold transition-all duration-200 focus:ring-4 ${course.prerequisites && course.progress === 0
                                         ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
                                         : course.progress > 0
-                                        ? 'bg-green-600 hover:bg-green-700 text-white focus:ring-green-200'
-                                        : 'bg-indigo-600 hover:bg-indigo-700 text-white focus:ring-indigo-200'
-                                }`}
+                                            ? 'bg-green-600 hover:bg-green-700 text-white focus:ring-green-200'
+                                            : 'bg-indigo-600 hover:bg-indigo-700 text-white focus:ring-indigo-200'
+                                    }`}
                                 style={{ fontSize: `${fontSize}px` }}
                             >
                                 {course.prerequisites && course.progress === 0
                                     ? <strong>Complete Prerequisites First</strong>
                                     : course.progress > 0
-                                    ? <strong>Continue Course</strong>
-                                    : <strong>Start Course</strong>
+                                        ? <strong>Continue Course</strong>
+                                        : <strong>Start Course</strong>
                                 }
                             </button>
                         </div>
@@ -459,7 +474,7 @@ export const ElementaryCourses: React.FC<ElementaryCoursesProps> = ({
 
             {/* Learning Tips */}
             <div className="bg-gradient-to-r from-yellow-50 to-orange-50 p-6 rounded-2xl border border-yellow-200">
-                <h3 
+                <h3
                     style={{ fontSize: `${fontSize + 4}px` }}
                     className="font-bold text-gray-800 mb-4 flex items-center"
                 >

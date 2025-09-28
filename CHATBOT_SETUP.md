@@ -1,25 +1,25 @@
 # AI Chatbot Setup Instructions
 
 ## Overview
-The AI chatbot feature uses OpenAI's GPT-3.5-turbo model to provide intelligent, dyslexia-friendly math learning assistance.
+The AI chatbot feature uses Google's Gemini AI model to provide intelligent, dyslexia-friendly math learning assistance.
 
 ## Setup Instructions
 
-### 1. Get an OpenAI API Key
-1. Visit [OpenAI Platform](https://platform.openai.com/api-keys)
-2. Create an account or sign in
-3. Navigate to API Keys section
-4. Create a new API key
-5. Copy the key (you won't be able to see it again)
+### 1. Get a Gemini API Key
+1. Visit [Google AI Studio](https://aistudio.google.com/app/apikey)
+2. Create an account or sign in with your Google account
+3. Click "Create API key"
+4. Choose "Create API key in new project" or select an existing project
+5. Copy the generated API key (keep it secure)
 
 ### 2. Configure Environment Variables
 1. Copy `.env.example` to `.env.local`:
    ```bash
    cp .env.example .env.local
    ```
-2. Open `.env.local` and replace `your_openai_api_key_here` with your actual API key:
+2. Open `.env.local` and replace `your_gemini_api_key_here` with your actual API key:
    ```
-   VITE_OPENAI_API_KEY=sk-your-actual-api-key-here
+   VITE_GEMINI_API_KEY=your-actual-api-key-here
    ```
 
 ### 3. Security Considerations
@@ -27,7 +27,7 @@ The AI chatbot feature uses OpenAI's GPT-3.5-turbo model to provide intelligent,
 **Important**: This implementation exposes the API key in the frontend, which is only suitable for development and prototyping.
 
 For production, you should:
-- Create a backend API endpoint that handles OpenAI requests
+- Create a backend API endpoint that handles Gemini AI requests
 - Store the API key securely on the server side
 - Implement proper authentication and rate limiting
 - Use environment variables on the server (not client-side)
@@ -59,17 +59,17 @@ If no API key is configured, the chatbot will automatically use pre-written fall
 5. Use the speaker button to hear responses read aloud
 
 ## Cost Considerations
-- OpenAI charges per token used
-- Each conversation costs approximately $0.001-0.01 depending on length
-- Consider implementing usage limits for production deployment
-- Monitor usage through OpenAI dashboard
+- Google Gemini AI has generous free tier limits
+- Free tier includes up to 15 requests per minute and 1,500 requests per day
+- Paid plans available for higher usage
+- Monitor usage through Google AI Studio
 
 ## Troubleshooting
 
 ### Common Issues
 1. **"I need an API key to work properly"**: Set up your API key in `.env.local`
 2. **"Rate limit exceeded"**: You're making too many requests, wait and try again
-3. **"Quota exceeded"**: You've reached your OpenAI usage limit, check your account
+3. **"Quota exceeded"**: You've reached your Gemini usage limit, check your account
 4. **Connection errors**: Check internet connection and API key validity
 
 ### Development Mode

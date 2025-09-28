@@ -61,8 +61,8 @@ export const Chatbot: React.FC<ChatbotProps> = ({ onClose, fontSize, characterSp
         setIsLoading(true);
 
         try {
-            // Import the OpenAI service
-            const { getChatResponse } = await import('../services/openaiService');
+            // Import the Gemini service
+            const { getChatResponse } = await import('../services/geminiService');
 
             const aiResponse = await getChatResponse(currentInput, messages);
 
