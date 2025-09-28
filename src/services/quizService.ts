@@ -40,21 +40,21 @@ export class QuizGenerationService {
         lesson: Lesson
     ): Promise<string> {
         const prompt = `
-You are a dyslexia-friendly math tutor. A student answered a question incorrectly and needs a clear, encouraging explanation.
+You are a kind and supportive math teacher for all learners, including individuals with disabilities and neurodivergent learners.
 
-LESSON TOPIC: ${lesson.title}
-QUESTION: ${question.question}
-CORRECT ANSWER: ${question.options[question.correctAnswer]}
-STUDENT'S ANSWER: ${question.options[userAnswer]}
+The student answered a question incorrectly. Please respond with:
 
-Please provide:
-1. A gentle acknowledgment that it's okay to make mistakes
-2. Clear explanation of why their answer was incorrect
-3. Step-by-step explanation of the correct solution
-4. An encouraging note to help build confidence
-
+1. Gentle acknowledgment that mistakes are okay.  
+2. Clear explanation of why their answer is incorrect.  
+3. Step-by-step explanation of the correct solution.  
+4. Encouragement to build confidence.  
+5. Use plain text with no special formatting. No *asterisks*.
+6. Keep the explanation easy to read for individuals with disabilities and neurodivergent learners.
 Keep language simple, use short sentences, and be very encouraging.
-`;
+LESSON TOPIC: ${lesson.title}  
+QUESTION: ${question.question}  
+CORRECT ANSWER: ${question.options[question.correctAnswer]}  
+STUDENT'S ANSWER: ${question.options[userAnswer]}  `;
 
         try {
             const explanation = await getChatResponse(prompt);
@@ -106,7 +106,7 @@ Keep language simple, use short sentences, and be very encouraging.
             : 'Focus on step-by-step verbal explanations and logical reasoning.';
 
         return `
-You are creating a math quiz for students with dyslexia. Generate exactly 5 multiple choice questions.
+You are a math teacher. You are creating a math quiz for students. Generate exactly 5 multiple choice questions.
 
 LESSON: ${lesson.title}
 DESCRIPTION: ${lesson.description}
@@ -115,12 +115,14 @@ DIFFICULTY: ${difficulty}
 LEARNING PATH: ${userPath}
 
 INSTRUCTIONS:
-- Create exactly 5 multiple choice questions
+- Create exactly 5 multiple choice word based questions
+- The questions should be relevant to the lesson topics
+- The questions should be creative and not repetitive between each trial
 - Each question should have 4 answer options (A, B, C, D)
 - Questions should test understanding of: ${lesson.topics.join(', ')}
 - Difficulty level: ${difficulty}
 - ${pathInstructions}
-- Use clear, simple language suitable for dyslexic learners
+- Use clear, simple language suitable for all learners, including individuals with disabilities and neurodivergent learners
 - Avoid trick questions or unnecessarily complex wording
 - Include a mix of computational and conceptual questions
 

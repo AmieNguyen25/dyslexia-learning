@@ -5,7 +5,7 @@ import { AuditoryLesson } from '../components/AuditoryLesson';
 import { QuickQuiz } from '../components/QuickQuiz';
 import { LessonExamples } from '../components/LessonExamples';
 import { QuizComponent } from '../components/QuizComponent';
-import type { LearningPath, VisualStep, Course, Lesson, LessonExample, QuizAttempt, User } from '../types';
+import type { LearningPath, Course, Lesson, LessonExample, QuizAttempt, User } from '../types';
 
 interface LessonPageProps {
     fontSize: number;
@@ -19,13 +19,6 @@ interface LessonPageProps {
     currentUser?: User | null;
     onLessonComplete?: (lessonId: string, attempt: QuizAttempt) => void;
 }
-
-const visualSteps: VisualStep[] = [
-    { step: '2x + 5 = 11', explanation: 'Start with the equation' },
-    { step: '2x + 5 - 5 = 11 - 5', explanation: 'Subtract 5 from both sides' },
-    { step: '2x = 6', explanation: 'Simplify both sides' },
-    { step: 'x = 3', explanation: 'Divide both sides by 2' }
-];
 
 // Helper function to create sample examples for lessons
 const createSampleExamples = (lesson: Lesson): LessonExample[] => {
@@ -99,7 +92,7 @@ export const LessonPage: React.FC<LessonPageProps> = ({
     }, [selectedCourse]);
 
     const handleNextStep = () => {
-        setEquationStep(Math.min(equationStep + 1, visualSteps.length - 1));
+        setEquationStep(Math.min(equationStep + 1, 3)); // Default to 4 steps (0-3)
     };
 
     const handlePreviousStep = () => {
@@ -323,7 +316,7 @@ export const LessonPage: React.FC<LessonPageProps> = ({
                         <VisualLesson
                             fontSize={fontSize}
                             lineSpacing={lineSpacing}
-                            visualSteps={visualSteps}
+                            visualSteps={[]}
                             equationStep={equationStep}
                             rewindCount={rewindCount}
                             onNextStep={handleNextStep}
