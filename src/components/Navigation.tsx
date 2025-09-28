@@ -1,6 +1,6 @@
 import React from 'react';
 import { User, LogOut, Home, BookOpen } from 'lucide-react';
-import type { User as UserType, CurrentPage } from '../types';
+import type { User as UserType, CurrentPage, Course } from '../types';
 
 interface NavigationProps {
     currentUser: UserType;
@@ -8,6 +8,7 @@ interface NavigationProps {
     fontSize: number;
     onPageChange: (page: CurrentPage) => void;
     onLogout: () => void;
+    selectedCourse?: Course | null;
 }
 
 export const Navigation: React.FC<NavigationProps> = ({
@@ -16,13 +17,24 @@ export const Navigation: React.FC<NavigationProps> = ({
     fontSize,
     onPageChange,
     onLogout,
+    selectedCourse,
 }) => (
     <nav className="bg-white shadow-sm border-b p-4">
         <div className="flex items-center justify-between max-w-6xl mx-auto">
             <div className="flex items-center space-x-6">
-                <h1 style={{ fontSize: `${fontSize + 2}px` }} className="font-bold text-gray-800">
-                    Algebraic Concepts
-                </h1>
+                <div className="flex items-center space-x-3">
+                    <h1 style={{ fontSize: `${fontSize + 2}px` }} className="font-bold text-gray-800">
+                        Algebraic Concepts
+                    </h1>
+                    {selectedCourse && currentPage === 'lesson' && (
+                        <div className="flex items-center space-x-2 px-3 py-1 bg-blue-50 rounded-lg">
+                            <span className="text-lg">{selectedCourse.icon}</span>
+                            <span style={{ fontSize: `${fontSize - 2}px` }} className="text-blue-700 font-medium">
+                                {selectedCourse.title}
+                            </span>
+                        </div>
+                    )}
+                </div>
 
                 <div className="flex space-x-2">
                     <button

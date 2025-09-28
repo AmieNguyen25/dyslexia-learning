@@ -272,7 +272,7 @@ export const ElementaryCourses: React.FC<ElementaryCoursesProps> = ({
                             style={{ fontSize: `${fontSize}px`, lineHeight: lineSpacing }}
                             className="text-gray-600"
                         >
-                            Grades K-5 • Building Strong Math Foundations
+                            <strong>Grades K-5</strong> • Building Strong <strong>Math Foundations</strong>
                         </p>
                     </div>
                 </div>
@@ -282,7 +282,7 @@ export const ElementaryCourses: React.FC<ElementaryCoursesProps> = ({
                     className="mb-6 bg-blue-100 hover:bg-blue-200 text-blue-700 px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors focus:ring-4 focus:ring-blue-300 mx-auto"
                 >
                     <Volume2 size={18} />
-                    <span style={{ fontSize: `${fontSize - 2}px` }}>Listen to Overview</span>
+                    <span style={{ fontSize: `${fontSize - 2}px` }}><strong>Listen to Overview</strong></span>
                 </button>
             </div>
 
@@ -325,10 +325,10 @@ export const ElementaryCourses: React.FC<ElementaryCoursesProps> = ({
                             <div className="mb-4">
                                 <div className="flex justify-between items-center mb-2">
                                     <span style={{ fontSize: `${fontSize - 4}px` }} className="opacity-90">
-                                        Progress: {course.progress}%
+                                        <strong>Progress:</strong> {course.progress}%
                                     </span>
                                     <span style={{ fontSize: `${fontSize - 4}px` }} className="opacity-90">
-                                        {course.estimatedHours} hours
+                                        <strong>{course.estimatedHours}</strong> hours
                                     </span>
                                 </div>
                                 <div className="w-full bg-white bg-opacity-20 rounded-full h-2">
@@ -446,10 +446,10 @@ export const ElementaryCourses: React.FC<ElementaryCoursesProps> = ({
                                 style={{ fontSize: `${fontSize}px` }}
                             >
                                 {course.prerequisites && course.progress === 0
-                                    ? 'Complete Prerequisites First'
+                                    ? <strong>Complete Prerequisites First</strong>
                                     : course.progress > 0
-                                    ? 'Continue Course'
-                                    : 'Start Course'
+                                    ? <strong>Continue Course</strong>
+                                    : <strong>Start Course</strong>
                                 }
                             </button>
                         </div>
@@ -463,7 +463,7 @@ export const ElementaryCourses: React.FC<ElementaryCoursesProps> = ({
                     style={{ fontSize: `${fontSize + 4}px` }}
                     className="font-bold text-gray-800 mb-4 flex items-center"
                 >
-                    💡 Elementary Learning Tips
+                    💡 <strong>Elementary Learning Tips</strong>
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>

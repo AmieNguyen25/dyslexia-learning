@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Navigation, OnboardingWizard } from './components';
+import { Navigation, OnboardingWizard, Chatbot } from './components';
 import { Dashboard, LessonPage, Login, Register } from './pages';
 import { useSpeechSynthesis, useTimer, useAccessibilitySettings } from './hooks';
-import type { User, LearningPath, CurrentPage, OnboardingData } from './types';
+import { MessageSquare } from 'lucide-react';
+import type { User, LearningPath, CurrentPage, OnboardingData, Course } from './types';
 
 
 const DyslexiaAlgebraApp = () => {
@@ -12,9 +13,11 @@ const DyslexiaAlgebraApp = () => {
   const [learningPath, setLearningPath] = useState<LearningPath>('visual');
   const [authPage, setAuthPage] = useState<'login' | 'register'>('login');
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   // Custom hooks
-  const { fontSize, lineSpacing, setFontSize, setLineSpacing } = useAccessibilitySettings();
+  const { fontSize, lineSpacing, characterSpacing, setFontSize, setLineSpacing, setCharacterSpacing } = useAccessibilitySettings();
   const { speakText } = useSpeechSynthesis();
   const { timeOnTask, resetTimer } = useTimer(currentPage === 'lesson' && isLoggedIn);
 
@@ -66,11 +69,23 @@ const DyslexiaAlgebraApp = () => {
     setIsLoggedIn(false);
     setCurrentUser(null);
     setCurrentPage('dashboard');
+    setSelectedCourse(null);
     resetTimer();
   };
 
   const handlePageChange = (page: CurrentPage) => {
     setCurrentPage(page);
+  };
+
+  const handleCourseSelect = (course: Course) => {
+    setSelectedCourse(course);
+    setCurrentPage('lesson');
+    speakText(`Starting ${course.title}. This course has ${course.lessons.length} lessons.`);
+  };
+
+  const handleBackToDashboard = () => {
+    setCurrentPage('dashboard');
+    // Keep selectedCourse so user can return to their course
   };
 
   // Show onboarding wizard after registration
@@ -122,27 +137,59 @@ const DyslexiaAlgebraApp = () => {
         fontSize={fontSize}
         onPageChange={handlePageChange}
         onLogout={handleLogout}
+        selectedCourse={selectedCourse}
       />
 
       {currentPage === 'dashboard' ? (
         <Dashboard
           fontSize={fontSize}
           lineSpacing={lineSpacing}
+          characterSpacing={characterSpacing}
           currentUser={currentUser}
           learningPath={learningPath}
           onLearningPathChange={setLearningPath}
           onFontSizeChange={setFontSize}
           onLineSpacingChange={setLineSpacing}
+          onCharacterSpacingChange={setCharacterSpacing}
           onSpeakText={speakText}
+          timeOnTask={timeOnTask}
+          selectedCourse={selectedCourse}
+          onCourseSelect={handleCourseSelect}
         />
       ) : (
         <LessonPage
           fontSize={fontSize}
           lineSpacing={lineSpacing}
+          characterSpacing={characterSpacing}
           learningPath={learningPath}
           timeOnTask={timeOnTask}
           onSpeakText={speakText}
+          selectedCourse={selectedCourse}
+          onBackToDashboard={handleBackToDashboard}
         />
+      )}
+
+      {/* Global AI Chatbot - Available on all pages after login */}
+      {isLoggedIn && (
+        <>
+          {isChatOpen && (
+            <Chatbot
+              onClose={() => setIsChatOpen(false)}
+              fontSize={fontSize}
+              characterSpacing={characterSpacing}
+              onSpeakText={speakText}
+            />
+          )}
+
+          {/* Floating Chatbot Toggle Button */}
+          <button
+            onClick={() => setIsChatOpen(true)}
+            className="fixed bottom-8 right-8 bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-4 rounded-full shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-300 z-40"
+            aria-label="Open AI support chat"
+          >
+            <MessageSquare size={28} />
+          </button>
+        </>
       )}
     </div>
   );

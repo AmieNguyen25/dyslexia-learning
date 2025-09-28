@@ -5,6 +5,7 @@ import type { LearningPath } from '../types';
 interface LearningPathSelectorProps {
     fontSize: number;
     lineSpacing: number;
+    characterSpacing: number;
     learningPath: LearningPath;
     onPathChange: (path: LearningPath) => void;
 }
@@ -12,13 +13,14 @@ interface LearningPathSelectorProps {
 export const LearningPathSelector: React.FC<LearningPathSelectorProps> = ({
     fontSize,
     lineSpacing,
+    characterSpacing,
     learningPath,
     onPathChange,
 }) => (
     <div className="bg-white p-6 rounded-xl shadow-sm border">
-        <h3 style={{ fontSize: `${fontSize + 2}px`, lineHeight: lineSpacing }}
+        <h3 style={{ fontSize: `${fontSize + 2}px`, lineHeight: lineSpacing, letterSpacing: `${characterSpacing}px` }}
             className="font-semibold mb-4 text-gray-800">
-            🎨 Your Learning Style
+            🎨 <strong>Your Learning Style</strong>
         </h3>
 
         <div className="grid md:grid-cols-2 gap-4">
@@ -30,12 +32,12 @@ export const LearningPathSelector: React.FC<LearningPathSelectorProps> = ({
                     }`}
             >
                 <Eye className="mx-auto mb-3 text-blue-600" size={32} />
-                <h4 style={{ fontSize: `${fontSize}px` }} className="font-medium mb-2">
-                    Visual Learning
+                <h4 style={{ fontSize: `${fontSize}px`, letterSpacing: `${characterSpacing}px` }} className="font-medium mb-2">
+                    <strong>Visual Learning</strong>
                 </h4>
-                <p style={{ fontSize: `${fontSize - 2}px`, lineHeight: lineSpacing }}
+                <p style={{ fontSize: `${fontSize - 2}px`, lineHeight: lineSpacing, letterSpacing: `${characterSpacing}px` }}
                     className="text-gray-600">
-                    Diagrams, infographics, and step-by-step visual guides
+                    <strong>Diagrams</strong>, <strong>infographics</strong>, and <strong>step-by-step</strong> visual guides
                 </p>
             </button>
 
@@ -47,12 +49,12 @@ export const LearningPathSelector: React.FC<LearningPathSelectorProps> = ({
                     }`}
             >
                 <Volume2 className="mx-auto mb-3 text-green-600" size={32} />
-                <h4 style={{ fontSize: `${fontSize}px` }} className="font-medium mb-2">
-                    Auditory Learning
+                <h4 style={{ fontSize: `${fontSize}px`, letterSpacing: `${characterSpacing}px` }} className="font-medium mb-2">
+                    <strong>Auditory Learning</strong>
                 </h4>
-                <p style={{ fontSize: `${fontSize - 2}px`, lineHeight: lineSpacing }}
+                <p style={{ fontSize: `${fontSize - 2}px`, lineHeight: lineSpacing, letterSpacing: `${characterSpacing}px` }}
                     className="text-gray-600">
-                    Narrated walkthroughs with voice descriptions
+                    <strong>Narrated walkthroughs</strong> with <strong>voice descriptions</strong>
                 </p>
             </button>
         </div>

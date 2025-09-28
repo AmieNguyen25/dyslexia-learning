@@ -4,6 +4,7 @@ import { X, Send, Bot, User, Loader2, Volume2 } from 'lucide-react';
 interface ChatbotProps {
     onClose: () => void;
     fontSize: number;
+    characterSpacing?: number;
     onSpeakText?: (text: string) => void;
 }
 
@@ -14,7 +15,7 @@ interface Message {
     timestamp: Date;
 }
 
-export const Chatbot: React.FC<ChatbotProps> = ({ onClose, fontSize, onSpeakText }) => {
+export const Chatbot: React.FC<ChatbotProps> = ({ onClose, fontSize, characterSpacing = 0, onSpeakText }) => {
     const [messages, setMessages] = useState<Message[]>([
         {
             id: '1',
@@ -108,7 +109,7 @@ export const Chatbot: React.FC<ChatbotProps> = ({ onClose, fontSize, onSpeakText
                         <Bot size={20} />
                     </div>
                     <div>
-                        <h3 className="font-bold" style={{ fontSize: `${fontSize}px` }}>
+                        <h3 className="font-bold" style={{ fontSize: `${fontSize}px`, letterSpacing: `${characterSpacing}px` }}>
                             AI Learning Assistant
                         </h3>
                         <p className="text-xs opacity-80">Always here to help</p>
@@ -138,7 +139,7 @@ export const Chatbot: React.FC<ChatbotProps> = ({ onClose, fontSize, onSpeakText
                             <div className="flex flex-col">
                                 <div className="relative">
                                     <div
-                                        style={{ fontSize: `${fontSize - 1}px` }}
+                                        style={{ fontSize: `${fontSize - 1}px`, letterSpacing: `${characterSpacing}px` }}
                                         className={`p-3 rounded-2xl shadow-sm ${msg.sender === 'ai'
                                             ? 'bg-white text-gray-800 rounded-tl-md pr-10'
                                             : 'bg-blue-500 text-white rounded-tr-md'
@@ -195,7 +196,7 @@ export const Chatbot: React.FC<ChatbotProps> = ({ onClose, fontSize, onSpeakText
                         onKeyPress={handleKeyPress}
                         placeholder="Ask me anything about math..."
                         className="flex-1 p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 focus:outline-none transition-colors"
-                        style={{ fontSize: `${fontSize - 1}px` }}
+                        style={{ fontSize: `${fontSize - 1}px`, letterSpacing: `${characterSpacing}px` }}
                         disabled={isLoading}
                         maxLength={500}
                     />
