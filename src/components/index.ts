@@ -13,3 +13,4 @@ export { ElementaryCourses } from './ElementaryCourses';
 export { MiddleSchoolCourses } from './MiddleSchoolCourses';
 export { HighSchoolCourses } from './HighSchoolCourses';
 export { CollegeAdultCourses } from './CollegeAdultCourses';
+export { Chatbot } from './Chatbot';
