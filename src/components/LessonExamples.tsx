@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight, Volume2, Eye, BookOpen } from 'lucide-react';
-import type { LessonExample } from '../types';
+import { ChevronLeft, ChevronRight, Volume2, Eye, BookOpen, Play } from 'lucide-react';
+import type { LessonExample, LearningPath } from '../types';
 
 interface LessonExamplesProps {
     examples: LessonExample[];
     fontSize: number;
     lineSpacing: number;
+    learningPath: LearningPath;
     onSpeakText: (text: string) => void;
     onExamplesComplete: () => void;
 }
@@ -14,11 +15,14 @@ export const LessonExamples: React.FC<LessonExamplesProps> = ({
     examples,
     fontSize,
     lineSpacing,
+    learningPath,
     onSpeakText,
     onExamplesComplete
 }) => {
     const [currentExampleIndex, setCurrentExampleIndex] = useState(0);
     const [showSolution, setShowSolution] = useState(false);
+    const [currentStepIndex, setCurrentStepIndex] = useState(0);
+    const [stepsRevealed, setStepsRevealed] = useState<number[]>([]);
 
     const currentExample = examples[currentExampleIndex];
     const isLastExample = currentExampleIndex === examples.length - 1;
@@ -29,6 +33,8 @@ export const LessonExamples: React.FC<LessonExamplesProps> = ({
         } else {
             setCurrentExampleIndex(currentExampleIndex + 1);
             setShowSolution(false);
+            setCurrentStepIndex(0);
+            setStepsRevealed([]);
         }
     };
 
@@ -36,6 +42,8 @@ export const LessonExamples: React.FC<LessonExamplesProps> = ({
         if (currentExampleIndex > 0) {
             setCurrentExampleIndex(currentExampleIndex - 1);
             setShowSolution(false);
+            setCurrentStepIndex(0);
+            setStepsRevealed([]);
         }
     };
 
@@ -43,11 +51,35 @@ export const LessonExamples: React.FC<LessonExamplesProps> = ({
         setShowSolution(true);
     };
 
+    const handleRevealStep = (stepIndex: number) => {
+        if (!stepsRevealed.includes(stepIndex)) {
+            setStepsRevealed([...stepsRevealed, stepIndex]);
+        }
+    };
+
+    const handleRevealAllSteps = () => {
+        if (currentExample.steps) {
+            setStepsRevealed(currentExample.steps.map((_, index) => index));
+        }
+        setShowSolution(true);
+    };
+
+    const speakStep = (step: string, stepNumber: number) => {
+        onSpeakText(`Step ${stepNumber + 1}: ${step}`);
+    };
+
     const speakExample = () => {
-        const text = `Example ${currentExampleIndex + 1}: ${currentExample.title}. 
-        Problem: ${currentExample.problem}. 
-        ${showSolution ? `Solution: ${currentExample.solution}. Explanation: ${currentExample.explanation}` : ''}`;
-        onSpeakText(text);
+        if (learningPath === 'auditory') {
+            // For auditory learners, speak the entire example
+            const text = `Example ${currentExampleIndex + 1}: ${currentExample.title}. 
+            Problem: ${currentExample.problem}. 
+            ${showSolution ? `Solution: ${currentExample.solution}. Explanation: ${currentExample.explanation}` : ''}`;
+            onSpeakText(text);
+        } else {
+            // For visual learners, just speak the current state
+            const text = `Example ${currentExampleIndex + 1}: ${currentExample.title}. Problem: ${currentExample.problem}.`;
+            onSpeakText(text);
+        }
     };
 
     return (
@@ -155,22 +187,180 @@ export const LessonExamples: React.FC<LessonExamplesProps> = ({
                         </div>
                     )}
 
-                    {/* Show Solution Button */}
-                    {!showSolution && (
-                        <div className="mt-6 text-center">
-                            <button
-                                onClick={handleShowSolution}
-                                className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
-                                style={{ fontSize: `${fontSize}px` }}
-                            >
-                                Show Solution
-                            </button>
+                    {/* Learning Path Specific Solution Display */}
+                    {learningPath === 'visual' ? (
+                        // Visual Learning: Step-by-step revelation
+                        <div className="mt-6">
+                            {currentExample.steps && currentExample.steps.length > 0 ? (
+                                <div className="space-y-3">
+                                    <h4
+                                        style={{ fontSize: `${fontSize + 1}px` }}
+                                        className="font-semibold text-gray-800 mb-4"
+                                    >
+                                        📝 Step-by-Step Solution:
+                                    </h4>
+                                    {currentExample.steps.map((step, index) => (
+                                        <div
+                                            key={index}
+                                            className={`p-4 rounded-lg border-2 transition-all duration-300 ${
+                                                stepsRevealed.includes(index)
+                                                    ? 'border-green-300 bg-green-50'
+                                                    : 'border-gray-200 bg-gray-50 opacity-60'
+                                            }`}
+                                        >
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex-1">
+                                                    {stepsRevealed.includes(index) ? (
+                                                        <p
+                                                            style={{ fontSize: `${fontSize}px`, lineHeight: lineSpacing }}
+                                                            className="text-gray-800"
+                                                        >
+                                                            <strong>Step {index + 1}:</strong> {step}
+                                                        </p>
+                                                    ) : (
+                                                        <p
+                                                            style={{ fontSize: `${fontSize}px` }}
+                                                            className="text-gray-500"
+                                                        >
+                                                            <strong>Step {index + 1}:</strong> Click to reveal
+                                                        </p>
+                                                    )}
+                                                </div>
+                                                <div className="flex space-x-2">
+                                                    {stepsRevealed.includes(index) && (
+                                                        <button
+                                                            onClick={() => speakStep(step, index)}
+                                                            className="bg-blue-100 hover:bg-blue-200 text-blue-700 p-2 rounded-lg transition-colors"
+                                                            aria-label={`Listen to step ${index + 1}`}
+                                                        >
+                                                            <Volume2 size={16} />
+                                                        </button>
+                                                    )}
+                                                    {!stepsRevealed.includes(index) && (
+                                                        <button
+                                                            onClick={() => handleRevealStep(index)}
+                                                            className="bg-green-100 hover:bg-green-200 text-green-700 px-4 py-2 rounded-lg transition-colors text-sm font-medium"
+                                                            style={{ fontSize: `${fontSize - 2}px` }}
+                                                        >
+                                                            Reveal
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    
+                                    {/* Show All Steps Button */}
+                                    {stepsRevealed.length < currentExample.steps.length && (
+                                        <div className="text-center mt-4">
+                                            <button
+                                                onClick={handleRevealAllSteps}
+                                                className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
+                                                style={{ fontSize: `${fontSize}px` }}
+                                            >
+                                                Show All Steps
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    {/* Final Answer (shown when all steps revealed) */}
+                                    {stepsRevealed.length === currentExample.steps.length && (
+                                        <div className="bg-green-50 rounded-lg p-4 border-2 border-green-300">
+                                            <p
+                                                style={{ fontSize: `${fontSize + 2}px`, lineHeight: lineSpacing }}
+                                                className="text-green-800 font-bold text-center"
+                                            >
+                                                🎉 Final Answer: {currentExample.solution}
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+                            ) : (
+                                // Fallback if no steps available
+                                <div className="text-center">
+                                    <button
+                                        onClick={handleShowSolution}
+                                        className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
+                                        style={{ fontSize: `${fontSize}px` }}
+                                    >
+                                        Show Solution
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        // Auditory Learning: Traditional approach with full audio support
+                        <div className="mt-6">
+                            {!showSolution ? (
+                                <div className="text-center space-y-4">
+                                    <button
+                                        onClick={handleShowSolution}
+                                        className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors block mx-auto"
+                                        style={{ fontSize: `${fontSize}px` }}
+                                    >
+                                        Show Solution
+                                    </button>
+                                    <button
+                                        onClick={speakExample}
+                                        className="bg-blue-100 hover:bg-blue-200 text-blue-700 px-6 py-3 rounded-lg font-semibold transition-colors flex items-center space-x-2 mx-auto"
+                                        style={{ fontSize: `${fontSize}px` }}
+                                    >
+                                        <Volume2 size={20} />
+                                        <span>🎧 Listen to Full Explanation</span>
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="space-y-4">
+                                    <h4
+                                        style={{ fontSize: `${fontSize + 2}px` }}
+                                        className="font-semibold text-gray-800 mb-4 flex items-center"
+                                    >
+                                        <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm mr-3">
+                                            Solution
+                                        </span>
+                                        Here's how to solve it
+                                        <button
+                                            onClick={speakExample}
+                                            className="ml-4 bg-blue-100 hover:bg-blue-200 text-blue-700 p-2 rounded-lg transition-colors"
+                                            aria-label="Listen to complete solution"
+                                        >
+                                            <Volume2 size={18} />
+                                        </button>
+                                    </h4>
+
+                                    {/* Solution */}
+                                    <div className="bg-green-50 rounded-lg p-4 mb-4">
+                                        <p
+                                            style={{ fontSize: `${fontSize + 2}px`, lineHeight: lineSpacing }}
+                                            className="text-green-800 font-bold"
+                                        >
+                                            Answer: {currentExample.solution}
+                                        </p>
+                                    </div>
+
+                                    {/* Explanation */}
+                                    <div className="bg-gray-50 rounded-lg p-4">
+                                        <h5
+                                            style={{ fontSize: `${fontSize + 1}px` }}
+                                            className="font-semibold text-gray-700 mb-2"
+                                        >
+                                            Step-by-Step Explanation:
+                                        </h5>
+                                        <p
+                                            style={{ fontSize: `${fontSize}px`, lineHeight: lineSpacing }}
+                                            className="text-gray-700 whitespace-pre-line"
+                                        >
+                                            {currentExample.explanation}
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>
 
-                {/* Solution Section */}
-                {showSolution && (
+                {/* Traditional Solution Section (backup) */}
+                {showSolution && learningPath === 'visual' && (!currentExample.steps || currentExample.steps.length === 0) && (
                     <div className="p-6">
                         <h4
                             style={{ fontSize: `${fontSize + 2}px` }}
@@ -231,14 +421,31 @@ export const LessonExamples: React.FC<LessonExamplesProps> = ({
                         style={{ fontSize: `${fontSize - 2}px` }}
                         className="text-gray-600"
                     >
-                        {showSolution ? 'Great! Ready for the next example?' : 'Take your time to understand the problem'}
+                        {learningPath === 'visual'
+                            ? (currentExample.steps && stepsRevealed.length === currentExample.steps.length 
+                                ? 'Great! You\'ve seen all the steps. Ready for the next example?' 
+                                : 'Click to reveal each step at your own pace')
+                            : (showSolution 
+                                ? 'Great! Ready for the next example?' 
+                                : 'Take your time to understand the problem')
+                        }
                     </p>
                 </div>
 
                 <button
                     onClick={handleNext}
-                    disabled={!showSolution}
-                    className={`flex items-center px-6 py-3 rounded-lg font-semibold transition-colors ${!showSolution
+                    disabled={learningPath === 'visual' 
+                        ? (currentExample.steps && currentExample.steps.length > 0 
+                            ? stepsRevealed.length < currentExample.steps.length 
+                            : !showSolution)
+                        : !showSolution
+                    }
+                    className={`flex items-center px-6 py-3 rounded-lg font-semibold transition-colors ${
+                        (learningPath === 'visual' 
+                            ? (currentExample.steps && currentExample.steps.length > 0 
+                                ? stepsRevealed.length < currentExample.steps.length 
+                                : !showSolution)
+                            : !showSolution)
                             ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                             : isLastExample
                                 ? 'bg-green-600 hover:bg-green-700 text-white'
@@ -257,7 +464,10 @@ export const LessonExamples: React.FC<LessonExamplesProps> = ({
                     style={{ fontSize: `${fontSize}px`, lineHeight: lineSpacing }}
                     className="text-blue-800"
                 >
-                    💪 You're doing great! Understanding these examples will help you succeed on the quiz.
+                    {learningPath === 'visual' 
+                        ? '👀 💪 Excellent! Taking it step-by-step helps you understand better. You\'re ready for the quiz!'
+                        : '🎧 💪 Great listening! Understanding these explanations will help you succeed on the quiz.'
+                    }
                 </p>
             </div>
         </div>

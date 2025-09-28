@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
-import { Calendar, Clock, Target, Plus, Trash2, Edit3, BookOpen, CheckCircle, Volume2, Save } from 'lucide-react';
-import type { StudyPlan as StudyPlanType, StudyGoal, WeeklySchedule } from '../types';
+import { Calendar, Clock, Target, Plus, Trash2, Edit3, BookOpen, CheckCircle, Volume2, Save, Sparkles, Loader } from 'lucide-react';
+import type { StudyPlan as StudyPlanType, StudyGoal, WeeklySchedule, OnboardingData, AIStudyPlanRequest } from '../types';
+import { generateAIStudyPlan } from '../services/geminiService';
 
 interface StudyPlanProps {
     fontSize: number;
     lineSpacing: number;
     characterSpacing: number;
     onSpeakText: (text: string) => void;
+    onboardingData?: OnboardingData | null;
 }
 
 export const StudyPlan: React.FC<StudyPlanProps> = ({
@@ -14,6 +16,7 @@ export const StudyPlan: React.FC<StudyPlanProps> = ({
     lineSpacing,
     characterSpacing,
     onSpeakText,
+    onboardingData,
 }) => {
     const [currentPlan, setCurrentPlan] = useState<StudyPlanType>({
         id: 'plan-1',
@@ -43,6 +46,8 @@ export const StudyPlan: React.FC<StudyPlanProps> = ({
         completed: false
     });
     const [showGoalForm, setShowGoalForm] = useState(false);
+    const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
+    const [showAIButton, setShowAIButton] = useState(!!onboardingData);
 
     const daysOfWeek: (keyof WeeklySchedule)[] = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
     const priorityColors = {
@@ -57,6 +62,39 @@ export const StudyPlan: React.FC<StudyPlanProps> = ({
         onSpeakText('Study plan saved successfully');
     };
 
+    const handleGenerateAIStudyPlan = async () => {
+        if (!onboardingData) {
+            onSpeakText('No onboarding data available for AI study plan generation.');
+            return;
+        }
+
+        setIsGeneratingPlan(true);
+        onSpeakText('Generating your personalized study plan with AI...');
+
+        try {
+            const aiRequest: AIStudyPlanRequest = {
+                learningGoals: onboardingData.learningGoals,
+                gradeLevel: onboardingData.gradeLevel,
+                comfortLevel: onboardingData.comfortLevel,
+                accessibilityPrefs: onboardingData.accessibilityPrefs
+            };
+
+            const aiGeneratedPlan = await generateAIStudyPlan(aiRequest);
+
+            // Update the current plan with AI-generated content
+            setCurrentPlan(aiGeneratedPlan);
+            setIsEditing(false);
+            setShowAIButton(false); // Hide the AI button after use
+
+            onSpeakText('Your personalized AI study plan has been created successfully!');
+        } catch (error) {
+            console.error('Error generating AI study plan:', error);
+            onSpeakText('There was an error generating your study plan. Please try again or create one manually.');
+        } finally {
+            setIsGeneratingPlan(false);
+        }
+    };
+
     const handleAddGoal = () => {
         if (newGoal.title && newGoal.description) {
             const goal: StudyGoal = {
@@ -68,12 +106,12 @@ export const StudyPlan: React.FC<StudyPlanProps> = ({
                 completed: false,
                 createdAt: new Date()
             };
-            
+
             setCurrentPlan(prev => ({
                 ...prev,
                 goals: [...prev.goals, goal]
             }));
-            
+
             setNewGoal({
                 title: '',
                 description: '',
@@ -126,7 +164,7 @@ export const StudyPlan: React.FC<StudyPlanProps> = ({
                                 </p>
                             </div>
                         </div>
-                        
+
                         <div className="flex items-center space-x-4">
                             <button
                                 onClick={() => onSpeakText('Create your personalized study plan by setting goals, scheduling study sessions, and tracking your progress.')}
@@ -135,7 +173,24 @@ export const StudyPlan: React.FC<StudyPlanProps> = ({
                             >
                                 <Volume2 size={20} />
                             </button>
-                            
+
+                            {showAIButton && (
+                                <button
+                                    onClick={handleGenerateAIStudyPlan}
+                                    disabled={isGeneratingPlan}
+                                    className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg flex items-center space-x-2 transition-colors focus:ring-4 focus:ring-purple-300"
+                                >
+                                    {isGeneratingPlan ? (
+                                        <Loader className="animate-spin" size={20} />
+                                    ) : (
+                                        <Sparkles size={20} />
+                                    )}
+                                    <span style={{ fontSize: `${fontSize}px`, letterSpacing: `${characterSpacing}px` }}>
+                                        <strong>{isGeneratingPlan ? 'Generating...' : 'Generate AI Plan'}</strong>
+                                    </span>
+                                </button>
+                            )}
+
                             <button
                                 onClick={handleSavePlan}
                                 className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-6 py-3 rounded-lg flex items-center space-x-2 transition-colors focus:ring-4 focus:ring-green-300"
@@ -159,7 +214,7 @@ export const StudyPlan: React.FC<StudyPlanProps> = ({
                                 {progressPercentage}%
                             </div>
                         </div>
-                        
+
                         <div className="bg-white rounded-lg p-4 mb-4">
                             <div className="flex justify-between items-center mb-2">
                                 <span style={{ fontSize: `${fontSize}px`, letterSpacing: `${characterSpacing}px` }}
@@ -168,7 +223,7 @@ export const StudyPlan: React.FC<StudyPlanProps> = ({
                                 </span>
                             </div>
                             <div className="w-full bg-gray-200 rounded-full h-3">
-                                <div 
+                                <div
                                     className="bg-gradient-to-r from-green-500 to-emerald-500 h-3 rounded-full transition-all duration-500"
                                     style={{ width: `${progressPercentage}%` }}
                                 />
@@ -176,6 +231,33 @@ export const StudyPlan: React.FC<StudyPlanProps> = ({
                         </div>
                     </div>
                 </div>
+
+                {/* AI Study Plan Information */}
+                {showAIButton && (
+                    <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-2xl p-6 mb-8">
+                        <div className="flex items-center space-x-3 mb-4">
+                            <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-2 rounded-lg">
+                                <Sparkles className="text-white" size={24} />
+                            </div>
+                            <h3 style={{ fontSize: `${fontSize + 2}px`, letterSpacing: `${characterSpacing}px` }}
+                                className="font-bold text-purple-800">
+                                🤖 <strong>AI-Powered Study Plan Available!</strong>
+                            </h3>
+                        </div>
+                        <p style={{ fontSize: `${fontSize}px`, letterSpacing: `${characterSpacing}px` }}
+                            className="text-purple-700 mb-4">
+                            Based on your onboarding goals and preferences, our AI can create a personalized study plan tailored specifically for you. Click the <strong>"Generate AI Plan"</strong> button above to get started!
+                        </p>
+                        <div className="bg-white p-4 rounded-lg border border-purple-100">
+                            <p style={{ fontSize: `${fontSize - 2}px`, letterSpacing: `${characterSpacing}px` }}
+                                className="text-gray-600">
+                                <strong>Your Goals:</strong> {onboardingData?.learningGoals.join(', ') || 'Not specified'}<br />
+                                <strong>Grade Level:</strong> {onboardingData?.gradeLevel || 'Not specified'}<br />
+                                <strong>Comfort Level:</strong> {onboardingData?.comfortLevel || 'Not specified'}
+                            </p>
+                        </div>
+                    </div>
+                )}
 
                 <div className="grid lg:grid-cols-2 gap-8">
                     {/* Plan Details */}
@@ -347,22 +429,20 @@ export const StudyPlan: React.FC<StudyPlanProps> = ({
                             {currentPlan.goals.map((goal) => (
                                 <div
                                     key={goal.id}
-                                    className={`p-4 rounded-lg border-2 transition-colors ${
-                                        goal.completed
+                                    className={`p-4 rounded-lg border-2 transition-colors ${goal.completed
                                             ? 'bg-green-50 border-green-300'
                                             : `bg-gradient-to-r ${priorityColors[goal.priority]} border-2`
-                                    }`}
+                                        }`}
                                 >
                                     <div className="flex items-start justify-between">
                                         <div className="flex-1">
                                             <div className="flex items-center space-x-3 mb-2">
                                                 <button
                                                     onClick={() => handleToggleGoal(goal.id)}
-                                                    className={`p-1 rounded-full transition-colors ${
-                                                        goal.completed
+                                                    className={`p-1 rounded-full transition-colors ${goal.completed
                                                             ? 'bg-green-600 text-white'
                                                             : 'bg-gray-300 hover:bg-gray-400 text-gray-600'
-                                                    }`}
+                                                        }`}
                                                 >
                                                     <CheckCircle size={16} />
                                                 </button>
@@ -383,13 +463,12 @@ export const StudyPlan: React.FC<StudyPlanProps> = ({
                                                     </span>
                                                 </span>
                                                 <span style={{ fontSize: `${fontSize - 4}px`, letterSpacing: `${characterSpacing}px` }}
-                                                    className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                                        goal.priority === 'high' 
+                                                    className={`px-2 py-1 rounded-full text-xs font-medium ${goal.priority === 'high'
                                                             ? 'bg-red-100 text-red-800'
                                                             : goal.priority === 'medium'
-                                                            ? 'bg-yellow-100 text-yellow-800'
-                                                            : 'bg-green-100 text-green-800'
-                                                    }`}>
+                                                                ? 'bg-yellow-100 text-yellow-800'
+                                                                : 'bg-green-100 text-green-800'
+                                                        }`}>
                                                     {goal.priority.toUpperCase()}
                                                 </span>
                                             </div>

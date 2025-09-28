@@ -30,7 +30,14 @@ const createSampleExamples = (lesson: Lesson): LessonExample[] => {
             problem: 'Solve for x: 2x + 3 = 9',
             solution: 'x = 3',
             explanation: 'Step 1: Subtract 3 from both sides\n2x + 3 - 3 = 9 - 3\n2x = 6\n\nStep 2: Divide both sides by 2\n2x ÷ 2 = 6 ÷ 2\nx = 3',
-            visualAid: 'Think of this like a balance scale - whatever you do to one side, do to the other!'
+            visualAid: 'Think of this like a balance scale - whatever you do to one side, do to the other!',
+            steps: [
+                'Original equation: 2x + 3 = 9',
+                'Subtract 3 from both sides: 2x + 3 - 3 = 9 - 3',
+                'Simplify: 2x = 6',
+                'Divide both sides by 2: 2x ÷ 2 = 6 ÷ 2',
+                'Final answer: x = 3'
+            ]
         },
         {
             id: 'example-2',
@@ -38,7 +45,14 @@ const createSampleExamples = (lesson: Lesson): LessonExample[] => {
             problem: 'Solve for x: 3x - 7 = 14',
             solution: 'x = 7',
             explanation: 'Step 1: Add 7 to both sides\n3x - 7 + 7 = 14 + 7\n3x = 21\n\nStep 2: Divide both sides by 3\n3x ÷ 3 = 21 ÷ 3\nx = 7',
-            visualAid: 'Picture moving the -7 to the other side by changing it to +7'
+            visualAid: 'Picture moving the -7 to the other side by changing it to +7',
+            steps: [
+                'Original equation: 3x - 7 = 14',
+                'Add 7 to both sides: 3x - 7 + 7 = 14 + 7',
+                'Simplify: 3x = 21',
+                'Divide both sides by 3: 3x ÷ 3 = 21 ÷ 3',
+                'Final answer: x = 7'
+            ]
         },
         {
             id: 'example-3',
@@ -46,7 +60,16 @@ const createSampleExamples = (lesson: Lesson): LessonExample[] => {
             problem: 'Solve for x: 4x + 2 = 2x + 10',
             solution: 'x = 4',
             explanation: 'Step 1: Subtract 2x from both sides\n4x - 2x + 2 = 2x - 2x + 10\n2x + 2 = 10\n\nStep 2: Subtract 2 from both sides\n2x + 2 - 2 = 10 - 2\n2x = 8\n\nStep 3: Divide both sides by 2\nx = 4',
-            visualAid: 'Move all x terms to one side and all numbers to the other side'
+            visualAid: 'Move all x terms to one side and all numbers to the other side',
+            steps: [
+                'Original equation: 4x + 2 = 2x + 10',
+                'Subtract 2x from both sides: 4x - 2x + 2 = 2x - 2x + 10',
+                'Simplify: 2x + 2 = 10',
+                'Subtract 2 from both sides: 2x + 2 - 2 = 10 - 2',
+                'Simplify: 2x = 8',
+                'Divide both sides by 2: 2x ÷ 2 = 8 ÷ 2',
+                'Final answer: x = 4'
+            ]
         }
     ];
 
@@ -201,6 +224,7 @@ export const LessonPage: React.FC<LessonPageProps> = ({
                             examples={selectedLesson.examples}
                             fontSize={fontSize}
                             lineSpacing={lineSpacing}
+                            learningPath={learningPath}
                             onSpeakText={onSpeakText}
                             onExamplesComplete={handleExamplesComplete}
                         />

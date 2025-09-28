@@ -53,6 +53,7 @@ export interface LessonExample {
     solution: string;
     explanation: string;
     visualAid?: string; // URL or description for visual representation
+    steps?: string[]; // Step-by-step breakdown for visual learners
 }
 
 export interface QuizQuestion {
@@ -108,6 +109,52 @@ export interface CourseProgress {
     currentLesson: string | null;
     timeSpent: number; // in minutes
     lastAccessed: Date;
+}
+
+export interface StudyGoal {
+    id: string;
+    title: string;
+    description: string;
+    priority: 'high' | 'medium' | 'low';
+    estimatedHours: number;
+    completed: boolean;
+    createdAt: Date;
+}
+
+export interface StudySession {
+    id: string;
+    subject: string;
+    startTime: string;
+    endTime: string;
+    topic?: string;
+}
+
+export interface WeeklySchedule {
+    monday: StudySession[];
+    tuesday: StudySession[];
+    wednesday: StudySession[];
+    thursday: StudySession[];
+    friday: StudySession[];
+    saturday: StudySession[];
+    sunday: StudySession[];
+}
+
+export interface StudyPlan {
+    id: string;
+    title: string;
+    description: string;
+    goals: StudyGoal[];
+    weeklySchedule: WeeklySchedule;
+    targetCompletionDate: string;
+    created: Date;
+    progress: number;
+}
+
+export interface AIStudyPlanRequest {
+    learningGoals: OnboardingData['learningGoals'];
+    gradeLevel: OnboardingData['gradeLevel'];
+    comfortLevel: OnboardingData['comfortLevel'];
+    accessibilityPrefs: OnboardingData['accessibilityPrefs'];
 }
 
 export type LearningPath = 'visual' | 'auditory';

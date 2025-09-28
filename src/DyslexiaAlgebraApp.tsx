@@ -15,6 +15,7 @@ const DyslexiaAlgebraApp = () => {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [onboardingData, setOnboardingData] = useState<OnboardingData | null>(null);
 
   // Custom hooks
   const { fontSize, lineSpacing, characterSpacing, setFontSize, setLineSpacing, setCharacterSpacing } = useAccessibilitySettings();
@@ -43,22 +44,25 @@ const DyslexiaAlgebraApp = () => {
     setShowOnboarding(true); // Show onboarding after registration
   };
 
-  const handleOnboardingComplete = (onboardingData: OnboardingData) => {
+  const handleOnboardingComplete = (completedOnboardingData: OnboardingData) => {
+    // Store onboarding data for later use
+    setOnboardingData(completedOnboardingData);
+
     // Update user preferences based on onboarding data
     if (currentUser) {
       setCurrentUser({
         ...currentUser,
-        preferredPath: onboardingData.learningGoals.includes('concept-review') ? 'visual' : 'auditory',
+        preferredPath: completedOnboardingData.learningGoals.includes('concept-review') ? 'visual' : 'auditory',
         adaptationHistory: [
           ...currentUser.adaptationHistory,
-          `Completed onboarding - Grade: ${onboardingData.gradeLevel}, Comfort: ${onboardingData.comfortLevel}`,
-          `Learning goals: ${onboardingData.learningGoals.join(', ')}`
+          `Completed onboarding - Grade: ${completedOnboardingData.gradeLevel}, Comfort: ${completedOnboardingData.comfortLevel}`,
+          `Learning goals: ${completedOnboardingData.learningGoals.join(', ')}`
         ]
       });
     }
 
     // Apply accessibility settings
-    setFontSize(onboardingData.accessibilityPrefs.fontSize);
+    setFontSize(completedOnboardingData.accessibilityPrefs.fontSize);
 
     // Complete the flow
     setShowOnboarding(false);
@@ -192,7 +196,6 @@ const DyslexiaAlgebraApp = () => {
           onLineSpacingChange={setLineSpacing}
           onCharacterSpacingChange={setCharacterSpacing}
           onSpeakText={speakText}
-          timeOnTask={timeOnTask}
           selectedCourse={selectedCourse}
           onCourseSelect={handleCourseSelect}
         />
@@ -202,6 +205,7 @@ const DyslexiaAlgebraApp = () => {
           lineSpacing={lineSpacing}
           characterSpacing={characterSpacing}
           onSpeakText={speakText}
+          onboardingData={onboardingData}
         />
       ) : (
         <LessonPage
