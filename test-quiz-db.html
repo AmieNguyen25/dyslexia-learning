@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Quiz Database</title>
+</head>
+<body>
+    <h1>Quiz Database Test</h1>
+    <button onclick="testDatabase()">Test Database Operations</button>
+    <button onclick="clearDatabase()">Clear Database</button>
+    <div id="results"></div>
+
+    <script>
+        // Simple test of the database functions
+        function testDatabase() {
+            const results = document.getElementById('results');
+            
+            // Test saving a quiz attempt
+            const attemptId = 'test-' + Date.now();
+            const userId = 'user-1';
+            const lessonId = 'integers-intro';
+            
+            // Simulate localStorage operations like MockDatabaseService
+            const storageKey = 'dyslexia_learning_quiz_attempts';
+            let attempts = [];
+            try {
+                const existing = localStorage.getItem(storageKey);
+                attempts = existing ? JSON.parse(existing) : [];
+            } catch (e) {
+                attempts = [];
+            }
+            
+            const newAttempt = {
+                id: attemptId,
+                user_id: userId,
+                lesson_id: lessonId,
+                attempt_number: 1,
+                score: 4,
+                max_score: 5,
+                percentage: 80,
+                passed: true,
+                time_taken: 120,
+                answers: JSON.stringify([]),
+                started_at: new Date().toISOString(),
+                completed_at: new Date().toISOString()
+            };
+            
+            attempts.push(newAttempt);
+            localStorage.setItem(storageKey, JSON.stringify(attempts));
+            
+            results.innerHTML = `
+                <h3>Database Test Results:</h3>
+                <p>✅ Saved test quiz attempt</p>
+                <p>📊 Total attempts in storage: ${attempts.length}</p>
+                <p>🎯 Test attempt details:</p>
+                <ul>
+                    <li>ID: ${attemptId}</li>
+                    <li>Lesson: ${lessonId}</li>
+                    <li>Score: ${newAttempt.score}/${newAttempt.max_score} (${newAttempt.percentage}%)</li>
+                    <li>Passed: ${newAttempt.passed}</li>
+                </ul>
+                <h4>All stored attempts:</h4>
+                <pre>${JSON.stringify(attempts, null, 2)}</pre>
+            `;
+        }
+        
+        function clearDatabase() {
+            localStorage.removeItem('dyslexia_learning_quiz_attempts');
+            localStorage.removeItem('dyslexia_learning_lessons');
+            localStorage.removeItem('dyslexia_learning_courses');
+            document.getElementById('results').innerHTML = '<p>🧹 Database cleared!</p>';
+        }
+    </script>
+</body>
+</html>

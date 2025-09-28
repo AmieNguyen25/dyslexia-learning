@@ -4,6 +4,7 @@ import { LearningPathSelector } from '../components/LearningPathSelector';
 import { PerformanceMetrics } from '../components/PerformanceMetrics';
 import { AccessibilitySettings } from '../components/AccessibilitySettings';
 import { CourseSelector } from '../components/CourseSelector';
+import { QuizPerformance } from '../components/QuizPerformance';
 import type { User, LearningPath, Course, OnboardingData } from '../types';
 
 interface DashboardProps {
@@ -17,7 +18,6 @@ interface DashboardProps {
     onLineSpacingChange: (spacing: number) => void;
     onCharacterSpacingChange: (spacing: number) => void;
     onSpeakText: (text: string) => void;
-    timeOnTask?: number;
     selectedCourse?: Course | null;
     onCourseSelect?: (course: Course) => void;
 }
@@ -33,7 +33,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
     onLineSpacingChange,
     onCharacterSpacingChange,
     onSpeakText,
-    timeOnTask = 0,
     selectedCourse,
     onCourseSelect,
 }) => {
@@ -188,6 +187,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 characterSpacing={characterSpacing}
                 currentUser={currentUser}
             />
+
+            {/* Quiz Performance Dashboard */}
+            <div className="bg-white p-6 rounded-2xl shadow-lg">
+                <QuizPerformance 
+                    userId={currentUser?.id || currentUser?.email || 'user-1'}
+                    fontSize={fontSize}
+                />
+            </div>
 
             {/* Accessibility Settings */}
             <AccessibilitySettings

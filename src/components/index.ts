@@ -16,3 +16,4 @@ export { CollegeAdultCourses } from './CollegeAdultCourses';
 export { Chatbot } from './Chatbot';
 export { QuizComponent } from './QuizComponent';
 export { LessonExamples } from './LessonExamples';
+export { QuizPerformance } from './QuizPerformance';

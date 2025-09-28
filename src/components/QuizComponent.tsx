@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { CheckCircle, XCircle, RotateCcw, Volume2, Brain, Clock } from 'lucide-react';
 import { QuizGenerationService } from '../services/quizService';
+import { MockDatabaseService } from '../services/mockDatabaseService';
 import type { QuizQuestion, QuizAttempt, Lesson, User } from '../types';
 
 interface QuizComponentProps {
@@ -106,7 +107,7 @@ export const QuizComponent: React.FC<QuizComponentProps> = ({
         }
     };
 
-    const finishQuiz = (answers: (number | null)[]) => {
+    const finishQuiz = async (answers: (number | null)[]) => {
         const correctAnswers = answers.filter((answer, index) =>
             answer === questions[index]?.correctAnswer
         ).length;
@@ -128,6 +129,50 @@ export const QuizComponent: React.FC<QuizComponentProps> = ({
             completedAt: new Date(),
             timeSpent
         };
+
+        // Save quiz attempt to database
+        try {
+            const userId = user.id || user.email || 'user-1'; // Fallback to demo user
+            console.log(`🎯 Attempting to save quiz result:`, {
+                attemptId,
+                userId,
+                lessonId: lesson.id,
+                score: finalScore,
+                maxScore: questions.length,
+                passed,
+                timeSpent
+            });
+            
+            const saveSuccess = MockDatabaseService.recordQuizAttempt(
+                attemptId,
+                userId,
+                lesson.id,
+                finalScore,
+                questions.length,
+                passed,
+                timeSpent,
+                answers.map((answer, index) => ({
+                    questionIndex: index,
+                    question: questions[index]?.question,
+                    selectedAnswer: answer,
+                    correctAnswer: questions[index]?.correctAnswer,
+                    isCorrect: answer === questions[index]?.correctAnswer
+                }))
+            );
+            
+            if (saveSuccess) {
+                // Trigger event for real-time performance updates
+                window.dispatchEvent(new CustomEvent('quizAttemptRecorded', {
+                    detail: { userId, lessonId: lesson.id, score: finalScore, passed }
+                }));
+                
+                console.log(`✅ Quiz attempt saved successfully: ${finalScore}/${questions.length} (${Math.round((finalScore/questions.length)*100)}%)`);
+            } else {
+                console.error('❌ Failed to save quiz attempt - recordQuizAttempt returned false');
+            }
+        } catch (error) {
+            console.error('❌ Failed to save quiz attempt:', error);
+        }
 
         onQuizComplete(attempt);
     };
